@@ -1,0 +1,21 @@
+# Python sanal ortamları (Yükleme yapma)
+venv/
+.venv/
+env/
+__pycache__/
+*.pyc
+
+# IDE Ayarları (PyCharm, VSCode vs.)
+.idea/
+.vscode/
+
+# Proje tarafından oluşturulan geçici dosyalar
+# (Her kullanıcının kendi verisini oluşturması için bunları yüklememeliyiz)
+butce_verisi.csv
+sunum_grafikleri.png
+*.pdf
+*.xlsx
+
+# İşletim sistemi dosyaları
+.DS_Store
+Thumbs.db
