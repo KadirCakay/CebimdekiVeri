@@ -1,17 +1,16 @@
 import sys
-import time
 from sistem_modelleri import ButceYonetici, Kullanici, Gelir, Gider, RaporFactory
-import grafik_analiz
+import grafik_cizici  # YENİ MODÜL ADI
 
 
 def menuyu_goster():
     print("\n" + "=" * 45)
-    print("   CEBİMDEKİ VERİ - KONTROL PANELİ   ")
+    print("   CEBİMDEKİ VERİ - PROFESYONEL SÜRÜM   ")
     print("=" * 45)
-    print("1. ➕ Gelir Ekle (Tarih Seçmeli)")
-    print("2. ➖ Gider Ekle (Tarih Seçmeli)")
-    print("3. 💰 Güncel Bakiye ve Durum")
-    print("4. 📈 Geçmiş Analizi ve Gelecek Tahmini")
+    print("1. ➕ Gelir Ekle")
+    print("2. ➖ Gider Ekle")
+    print("3. 💰 Güncel Bakiye (Otomatik Hesaplanır)")
+    print("4. 📈 Yapay Zeka Analizi (Grafik)")
     print("5. 📄 Rapor Oluştur")
     print("6. ❌ Çıkış")
     print("=" * 45)
@@ -19,23 +18,21 @@ def menuyu_goster():
 
 def tarih_sor():
     tarih = input("Tarih (YYYY-AA-GG) [Boş bırakırsan BUGÜN]: ")
-    if tarih.strip() == "":
-        return None  # None dönerse sistem bugünü alır
-    return tarih
+    return tarih.strip() if tarih.strip() != "" else None
 
 
 def uygulamayi_baslat():
     yonetici = ButceYonetici()
 
-    print("\n👋 Merhaba! Sisteme hoş geldin.")
-    # Hızlı test için buraları enter geçebilirsin
-    ad = input("Adınız: ") or "Misafir"
-    soyad = input("Soyadınız: ") or "Kullanıcı"
+    print("\n👋 Merhaba! CebimdekiVeri v2.0 Başlatıldı.")
+    ad = input("Adınız: ") or "Admin"
+    soyad = input("Soyadınız: ") or "User"
 
     kullanici = Kullanici(ad, soyad)
     yonetici.gozlemci_ekle(kullanici)
 
-    print(f"\nSistem hazır! Geçmişe veya geleceğe veri girebilirsin.")
+    print(f"\nHoş geldin {ad}. Sistem açılışta geçmiş verileri taradı ve bakiyeni güncelledi.")
+    yonetici.bakiye_goster()  # Açılışta doğru bakiyeyi göster
 
     while True:
         menuyu_goster()
@@ -46,11 +43,9 @@ def uygulamayi_baslat():
                 tutar = float(input("Gelir Tutarı (TL): "))
                 aciklama = input("Açıklama: ")
                 kaynak = input("Kaynak: ")
-                tarih_str = tarih_sor()  # Tarihi soruyoruz
+                tarih_str = tarih_sor()
 
-                # Tarihi parametre olarak gönderiyoruz
-                yeni_gelir = Gelir(tutar, aciklama, kaynak, tarih_str)
-                yonetici.islem_ekle(yeni_gelir)
+                yonetici.islem_ekle(Gelir(tutar, aciklama, kaynak, tarih_str))
             except ValueError:
                 print("❌ Hata: Tutar sayı olmalı!")
 
@@ -59,10 +54,9 @@ def uygulamayi_baslat():
                 tutar = float(input("Gider Tutarı (TL): "))
                 aciklama = input("Açıklama: ")
                 kategori = input("Kategori: ")
-                tarih_str = tarih_sor()  # Tarihi soruyoruz
+                tarih_str = tarih_sor()
 
-                yeni_gider = Gider(tutar, aciklama, kategori, tarih_str)
-                yonetici.islem_ekle(yeni_gider)
+                yonetici.islem_ekle(Gider(tutar, aciklama, kategori, tarih_str))
             except ValueError:
                 print("❌ Hata: Tutar sayı olmalı!")
 
@@ -70,18 +64,12 @@ def uygulamayi_baslat():
             yonetici.bakiye_goster()
 
         elif secim == '4':
-            print("\n🔄 Veriler işleniyor...")
-            grafik_analiz.grafik_ciz()
-            print("\n✅ Analiz tamamlandı! Grafikleri kontrol et.")
+            print("\n🤖 AI Modelleri Eğitiliyor ve Grafik Çiziliyor...")
+            grafik_cizici.grafik_olustur()
 
         elif secim == '5':
             tip = input("Format (pdf / excel): ").lower()
-            fabrika = RaporFactory()
-            rapor = fabrika.rapor_uret(tip)
-            if rapor:
-                print(f"\n✅ {rapor.olustur()}")
-            else:
-                print("\n❌ Geçersiz format.")
+            print(f"\n✅ {RaporFactory.rapor_uret(tip)}")
 
         elif secim == '6':
             print("Güle güle! 👋")

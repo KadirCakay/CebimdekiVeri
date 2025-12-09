@@ -11,26 +11,21 @@ class Gozlemci(ABC):
         pass
 
 
-# --- TEMEL SINIF (GÜNCELLENDİ: Artık tarih parametresi alıyor) ---
+# --- TEMEL SINIF ---
 class Islem(ABC):
     def __init__(self, tutar, aciklama, tarih_str=None):
         self.tutar = tutar
         self.aciklama = aciklama
-        # Eğer tarih girildiyse onu kullan, girilmediyse şu anı al
         if tarih_str:
             try:
                 self.tarih = datetime.strptime(tarih_str, "%Y-%m-%d")
             except ValueError:
-                print("⚠️ Tarih formatı hatalı! Bugünün tarihi kullanılıyor.")
                 self.tarih = datetime.now()
         else:
             self.tarih = datetime.now()
 
-    def __str__(self):
-        return f"[{self.tarih.strftime('%Y-%m-%d')}] {self.aciklama}: {self.tutar} TL"
 
-
-# --- MİRAS ALAN SINIFLAR (GÜNCELLENDİ) ---
+# --- MİRAS ALAN SINIFLAR ---
 class Gelir(Islem):
     def __init__(self, tutar, aciklama, kaynak, tarih_str=None):
         super().__init__(tutar, aciklama, tarih_str)
@@ -53,7 +48,7 @@ class Kullanici(Gozlemci):
         print(f"\n🔔 BİLDİRİM ({self.ad} {self.soyad}): {mesaj}")
 
 
-# --- YÖNETİCİ ---
+# --- YÖNETİCİ (GÜNCELLENDİ - BAKİYE HATASI FİXLENDİ) ---
 class ButceYonetici:
     _instance = None
 
@@ -63,7 +58,30 @@ class ButceYonetici:
             cls._instance.islemler = []
             cls._instance.gozlemciler = []
             cls._instance.bakiye = 0.0
+            # Program açılırken geçmiş veriyi yükle!
+            cls._instance.gecmisi_yukle()
         return cls._instance
+
+    def gecmisi_yukle(self):
+        """CSV dosyasını okuyup güncel bakiyeyi hesaplar."""
+        dosya_adi = "butce_verisi.csv"
+        if not os.path.exists(dosya_adi):
+            return
+
+        self.bakiye = 0.0  # Sıfırla ve yeniden hesapla
+        try:
+            with open(dosya_adi, mode='r', encoding='utf-8') as f:
+                okuyucu = csv.DictReader(f)
+                for satir in okuyucu:
+                    tutar = float(satir['Tutar'])
+                    tip = satir['Islem_Tipi']
+
+                    if tip == 'Gelir':
+                        self.bakiye += tutar
+                    elif tip == 'Gider':
+                        self.bakiye -= tutar
+        except Exception as e:
+            print(f"Veri yükleme hatası: {e}")
 
     def gozlemci_ekle(self, gozlemci: Gozlemci):
         self.gozlemciler.append(gozlemci)
@@ -73,12 +91,12 @@ class ButceYonetici:
 
         if isinstance(islem, Gelir):
             self.bakiye += islem.tutar
-            print(f"➕ Gelir Eklendi: {islem.aciklama} ({islem.tarih.strftime('%Y-%m-%d')})")
+            print(f"➕ Gelir Eklendi. Güncel Bakiye: {self.bakiye} TL")
             self.csv_ye_yaz(islem, "Gelir", "Gelir")
 
         elif isinstance(islem, Gider):
             self.bakiye -= islem.tutar
-            print(f"➖ Gider Eklendi: {islem.aciklama} ({islem.tarih.strftime('%Y-%m-%d')})")
+            print(f"➖ Gider Eklendi. Güncel Bakiye: {self.bakiye} TL")
             self.limit_kontrol()
             self.csv_ye_yaz(islem, islem.kategori, "Gider")
 
@@ -90,9 +108,14 @@ class ButceYonetici:
             islem.tutar,
             islem_tipi
         ]
+        yazma_modu = 'a' if os.path.exists(dosya_adi) else 'w'
+
         try:
-            with open(dosya_adi, mode='a', newline='', encoding='utf-8') as f:
+            with open(dosya_adi, mode=yazma_modu, newline='', encoding='utf-8') as f:
                 yazici = csv.writer(f)
+                # Eğer dosya yeni oluşuyorsa başlıkları ekle
+                if yazma_modu == 'w':
+                    yazici.writerow(["Tarih", "Kategori", "Tutar", "Islem_Tipi"])
                 yazici.writerow(veri)
         except Exception as e:
             print(f"Hata: CSV'ye yazılamadı! {e}")
@@ -112,23 +135,7 @@ class ButceYonetici:
 
 
 # --- RAPORLAMA ---
-class Rapor:
-    def olustur(self): pass
-
-
-class ExcelRapor(Rapor):
-    def olustur(self): return "📊 Excel Raporu oluşturuldu."
-
-
-class PDFRapor(Rapor):
-    def olustur(self): return "📄 PDF Raporu oluşturuldu."
-
-
 class RaporFactory:
     @staticmethod
     def rapor_uret(tip):
-        if tip == "excel":
-            return ExcelRapor()
-        elif tip == "pdf":
-            return PDFRapor()
-        return None
+        return f"📄 {tip.upper()} raporu oluşturuldu (Simülasyon)"
