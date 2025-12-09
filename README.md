@@ -1,10 +1,6 @@
-Harika, GitHub profilinde projeni "yıldız" gibi parlatacak, hem teknik detayları (AI, Design Patterns) hem de kullanım kolaylığını öne çıkaran **profesyonel bir `README.md`** hazırladım.
 
-Bunu kopyalayıp proje klasöründeki `README.md` dosyasının içine yapıştırman yeterli.
 
------
 
-````markdown
 # 💰 CebimdekiVeri (PocketData)
 ### Kişisel Bütçe Takibi ve Yapay Zeka Destekli Gelecek Tahmini
 
